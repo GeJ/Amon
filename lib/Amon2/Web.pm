@@ -47,8 +47,9 @@ sub req               { $_[0]->{request} }
 # -------------------------------------------------------------------------
 # Methods:
 
-sub redirect {
+sub _build_redirect_url {
     my ($self, $location, $params) = @_;
+
     my $url = do {
         if ($location =~ m{^https?://}i) {
             $location;
@@ -59,6 +60,7 @@ sub redirect {
             $url .= $location;
         }
     };
+
     if (my $ref_params = ref $params) {
         if ($ref_params eq 'ARRAY') {
             my $uri = URI->new($url);
@@ -76,6 +78,13 @@ sub redirect {
             $url = $uri->as_string;
         }
     }
+    return $url;
+}
+
+sub redirect {
+    my ($self, $location, $params) = @_;
+
+    my $url = $self->_build_redirect_url($location, $params);
     return $self->create_response(
         302,
         ['Location' => $url],
