@@ -92,6 +92,24 @@ sub redirect {
     );
 }
 
+sub local_redirect {
+    my ($self, $location, $params) = @_;
+
+    my $url  = $self->_build_redirect_url($location, $params);
+
+    # From Plack::Request#_uri_base;
+    my $env = $self->req->env;
+    my $uri = ($env->{'psgi.url_scheme'} || "http") .
+        "://" .
+        ($env->{HTTP_HOST} || (($env->{SERVER_NAME} || "") . ":" . ($env->{SERVER_PORT} || 80)));
+    $url =~ s{^$uri}{};
+    return $self->create_response(
+        302,
+        ['Location' => $url],
+        []
+    );
+}
+
 sub create_simple_status_page {
     my ($self, $code, $message) = @_;
     my $codestr = Plack::Util::encode_html($code);
